@@ -138,11 +138,11 @@ function canEmit(commandName) {
 }
 
 function variableLookup(varName) {
-  return `vars["${varName}"].ToString()`
+  return `{Vars["${varName}"].ToString()}`
 }
 
 function variableSetter(varName, value) {
-  return varName ? `vars["${varName}"] = ${value};` : ''
+  return varName ? `Vars["${varName}"] = ${value};` : ''
 }
 
 function emitWaitForWindow() {
@@ -158,12 +158,12 @@ function emitWaitForWindow() {
     {
       level: 0,
       statement:
-        'var whNow = ((IReadOnlyCollection<object>)driver.WindowHandles).ToList();',
+        'var whNow = ((IReadOnlyCollection<object>)Driver.WindowHandles).ToList();',
     },
     {
       level: 0,
       statement:
-        'var whThen = ((IReadOnlyCollection<object>)vars["WindowHandles"]).ToList();',
+        'var whThen = ((IReadOnlyCollection<object>)Vars["WindowHandles"]).ToList();',
     },
     { level: 0, statement: 'if (whNow.Count > whThen.Count) {' },
     { level: 1, statement: 'return whNow.Except(whThen).First().ToString();' },
@@ -180,7 +180,7 @@ function emitWaitForWindow() {
 
 async function emitNewWindowHandling(command, emittedCommand) {
   return Promise.resolve(
-    `vars["WindowHandles"] = driver.WindowHandles;\n${await emittedCommand}\nvars["${
+    `Vars["WindowHandles"] = Driver.WindowHandles;\n${await emittedCommand}\nVars["${
       command.windowHandleName
     }"] = waitForWindow(${command.windowTimeout});`
   )
@@ -192,21 +192,21 @@ function emitAssert(varName, value) {
       ? exporter.parsers.capitalize(value)
       : value
   return Promise.resolve(
-    `Assert.That(vars["${varName}"].ToString(), Is.EqualTo("${_value}"));`
+    `Assert.That(Vars["${varName}"].ToString(), Is.EqualTo($"${_value}"));`
   )
 }
 
 function emitAssertAlert(alertText) {
   return Promise.resolve(
-    `Assert.That(driver.SwitchTo().Alert().Text, Is.EqualTo("${alertText}"));`
+    `Assert.That(Driver.SwitchTo().Alert().Text, Is.EqualTo($"${alertText}"));`
   )
 }
 
 function emitAnswerOnNextPrompt(textToSend) {
   const commands = [
     { level: 0, statement: '{' },
-    { level: 1, statement: 'var Alert = driver.SwitchTo().Alert();' },
-    { level: 1, statement: `Alert.SendKeys("${textToSend}")` },
+    { level: 1, statement: 'var Alert = Driver.SwitchTo().Alert();' },
+    { level: 1, statement: `Alert.SendKeys($"${textToSend}")` },
     { level: 1, statement: 'Alert.Accept();' },
     { level: 0, statement: '}' },
   ]
@@ -218,7 +218,7 @@ async function emitCheck(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -231,26 +231,26 @@ async function emitCheck(locator) {
 }
 
 function emitChooseCancelOnNextConfirmation() {
-  return Promise.resolve(`driver.SwitchTo().Alert().Dismiss();`)
+  return Promise.resolve(`Driver.SwitchTo().Alert().Dismiss();`)
 }
 
 function emitChooseOkOnNextConfirmation() {
-  return Promise.resolve(`driver.SwitchTo().Alert().Accept();`)
+  return Promise.resolve(`Driver.SwitchTo().Alert().Accept();`)
 }
 
 async function emitClick(target) {
   return Promise.resolve(
-    `driver.FindElement(${await location.emit(target)}).Click();`
+    `Driver.FindElement(${await location.emit(target)}).Click();`
   )
 }
 
 async function emitClose() {
-  return Promise.resolve(`driver.Close();`)
+  return Promise.resolve(`Driver.Close();`)
 }
 
 function generateExpressionScript(script) {
   const scriptString = script.script.replace(/"/g, "'")
-  return `(Boolean) js.ExecuteScript("return (${scriptString})"${generateScriptArguments(
+  return `(Boolean) Js.ExecuteScript($"return (${scriptString})"${generateScriptArguments(
     script
   )})`
 }
@@ -304,7 +304,7 @@ function emitControlFlowForEach(collectionVarName, iteratorVarName) {
     commands: [
       {
         level: 0,
-        statement: `var ${collectionVarName}Enum = ((IReadOnlyCollection<object>)vars["${collectionVarName}"]).ToList().GetEnumerator();`,
+        statement: `var ${collectionVarName}Enum = ((IReadOnlyCollection<object>)Vars["${collectionVarName}"]).ToList().GetEnumerator();`,
       },
       {
         level: 0,
@@ -316,7 +316,7 @@ function emitControlFlowForEach(collectionVarName, iteratorVarName) {
       },
       {
         level: 1,
-        statement: `vars["${iteratorVarName}"] = ${collectionVarName}Enum.Current;`,
+        statement: `Vars["${iteratorVarName}"] = ${collectionVarName}Enum.Current;`,
       },
     ],
   })
@@ -353,11 +353,11 @@ async function emitDoubleClick(target) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         target
       )});`,
     },
-    { level: 1, statement: 'Actions builder = new Actions(driver);' },
+    { level: 1, statement: 'Actions builder = new Actions(Driver);' },
     { level: 1, statement: 'builder.DoubleClick(element).Perform();' },
     { level: 0, statement: '}' },
   ]
@@ -369,17 +369,17 @@ async function emitDragAndDrop(dragged, dropped) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var dragged = driver.FindElement(${await location.emit(
+      statement: `var dragged = Driver.FindElement(${await location.emit(
         dragged
       )});`,
     },
     {
       level: 1,
-      statement: `var dropped = driver.FindElement(${await location.emit(
+      statement: `var dropped = Driver.FindElement(${await location.emit(
         dropped
       )});`,
     },
-    { level: 1, statement: 'Actions builder = new Actions(driver);' },
+    { level: 1, statement: 'Actions builder = new Actions(Driver);' },
     { level: 1, statement: 'builder.DragAndDrop(dragged, dropped).Perform();' },
     { level: 0, statement: '}' },
   ]
@@ -387,7 +387,7 @@ async function emitDragAndDrop(dragged, dropped) {
 }
 
 async function emitEcho(message) {
-  const _message = message.startsWith('vars[') ? message : `"${message}"`
+  const _message = message.startsWith('Vars[') ? message : `"${message}"`
   return Promise.resolve(`Console.WriteLine(${_message});`)
 }
 
@@ -396,13 +396,13 @@ async function emitEditContent(locator, content) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
     {
       level: 1,
-      statement: `js.ExecuteScript("if(arguments[0].contentEditable === 'true') {arguments[0].innerText = '${content}'}", element);`,
+      statement: `Js.ExecuteScript($"if(arguments[0].contentEditable === 'true') {arguments[0].innerText = '${content}'}", element);`,
     },
     { level: 0, statement: '}' },
   ]
@@ -410,14 +410,14 @@ async function emitEditContent(locator, content) {
 }
 
 async function emitExecuteScript(script, varName) {
-  const result = `js.ExecuteScript("${script.script}"${generateScriptArguments(
+  const result = `Js.ExecuteScript($"${script.script}"${generateScriptArguments(
     script
   )})`
   return Promise.resolve(variableSetter(varName, result))
 }
 
 async function emitExecuteAsyncScript(script, varName) {
-  const result = `js.executeAsyncScript("var callback = arguments[arguments.length - 1];${
+  const result = `Js.executeAsyncScript($"var callback = arguments[arguments.length - 1];${
     script.script
   }.then(callback).catch(callback);${generateScriptArguments(script)}")`
   return Promise.resolve(variableSetter(varName, result))
@@ -425,7 +425,7 @@ async function emitExecuteAsyncScript(script, varName) {
 
 function generateScriptArguments(script) {
   return `${script.argv.length ? ', ' : ''}${script.argv
-    .map(varName => `vars["${varName}"]`)
+    .map(varName => `Vars["${varName}"]`)
     .join(',')}`
 }
 
@@ -434,11 +434,11 @@ async function emitMouseDown(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
-    { level: 1, statement: 'Actions builder = new Actions(driver);' },
+    { level: 1, statement: 'Actions builder = new Actions(Driver);' },
     {
       level: 1,
       statement: 'builder.MoveToElement(element).ClickAndHold().Perform();',
@@ -453,11 +453,11 @@ async function emitMouseMove(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
-    { level: 1, statement: 'Actions builder = new Actions(driver);' },
+    { level: 1, statement: 'Actions builder = new Actions(Driver);' },
     { level: 1, statement: 'builder.MoveToElement(element).Perform();' },
     { level: 0, statement: '}' },
   ]
@@ -469,9 +469,9 @@ async function emitMouseOut() {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(By.tagName("body"));`,
+      statement: `var element = Driver.FindElement(By.tagName("body"));`,
     },
-    { level: 1, statement: 'Actions builder = new Actions(driver);' },
+    { level: 1, statement: 'Actions builder = new Actions(Driver);' },
     { level: 1, statement: 'builder.MoveToElement(element, 0, 0).Perform();' },
     { level: 0, statement: '}' },
   ]
@@ -483,11 +483,11 @@ async function emitMouseUp(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
-    { level: 1, statement: 'Actions builder = new Actions(driver);' },
+    { level: 1, statement: 'Actions builder = new Actions(Driver);' },
     {
       level: 1,
       statement: 'builder.MoveToElement(element).Release().Perform();',
@@ -498,10 +498,11 @@ async function emitMouseUp(locator) {
 }
 
 function emitOpen(target) {
+  const globalUrl = global.baseUrl ? global.baseUrl : '{Vars["BaseAddress"].ToString()}'
   const url = /^(file|http|https):\/\//.test(target)
-    ? `"${target}"`
-    : `"${global.baseUrl}${target}"`
-  return Promise.resolve(`driver.Navigate().GoToUrl(${url});`)
+    ? `$"${target}"`
+    : `$"${globalUrl}${target}"`
+  return Promise.resolve(`Driver.Navigate().GoToUrl(${url});`)
 }
 
 async function emitPause(time) {
@@ -521,14 +522,14 @@ async function emitRun(testName) {
 
 async function emitRunScript(script) {
   return Promise.resolve(
-    `js.ExecuteScript("${script.script}${generateScriptArguments(script)}");`
+    `Js.ExecuteScript($"${script.script}${generateScriptArguments(script)}");`
   )
 }
 
 async function emitSetWindowSize(size) {
   const [width, height] = size.split('x')
   return Promise.resolve(
-    `driver.Manage().Window.Size = new System.Drawing.Size(${width}, ${height});`
+    `Driver.Manage().Window.Size = new System.Drawing.Size(${width}, ${height});`
   )
 }
 
@@ -537,7 +538,7 @@ async function emitSelect(selectElement, option) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var dropdown = driver.FindElement(${await location.emit(
+      statement: `var dropdown = Driver.FindElement(${await location.emit(
         selectElement
       )});`,
     },
@@ -554,10 +555,10 @@ async function emitSelect(selectElement, option) {
 
 async function emitSelectFrame(frameLocation) {
   if (frameLocation === 'relative=top' || frameLocation === 'relative=parent') {
-    return Promise.resolve('driver.SwitchTo().DefaultContent();')
+    return Promise.resolve('Driver.SwitchTo().DefaultContent();')
   } else if (/^index=/.test(frameLocation)) {
     return Promise.resolve(
-      `driver.SwitchTo().Frame(${Math.floor(
+      `Driver.SwitchTo().Frame(${Math.floor(
         frameLocation.split('index=')[1]
       )});`
     )
@@ -567,11 +568,11 @@ async function emitSelectFrame(frameLocation) {
         { level: 0, statement: '{' },
         {
           level: 1,
-          statement: `var element = driver.FindElement(${await location.emit(
+          statement: `var element = Driver.FindElement(${await location.emit(
             frameLocation
           )});`,
         },
-        { level: 1, statement: 'driver.SwitchTo().Frame(element);' },
+        { level: 1, statement: 'Driver.SwitchTo().Frame(element);' },
         { level: 0, statement: '}' },
       ],
     })
@@ -581,11 +582,11 @@ async function emitSelectFrame(frameLocation) {
 async function emitSelectWindow(windowLocation) {
   if (/^handle=/.test(windowLocation)) {
     return Promise.resolve(
-      `driver.SwitchTo().Window(${windowLocation.split('handle=')[1]});`
+      `Driver.SwitchTo().Window(${windowLocation.split('handle=')[1]});`
     )
   } else if (/^name=/.test(windowLocation)) {
     return Promise.resolve(
-      `driver.SwitchTo().Window("${windowLocation.split('name=')[1]}");`
+      `Driver.SwitchTo().Window($"${windowLocation.split('name=')[1]}");`
     )
   } else if (/^win_ser_/.test(windowLocation)) {
     if (windowLocation === 'win_ser_local') {
@@ -595,9 +596,9 @@ async function emitSelectWindow(windowLocation) {
           {
             level: 1,
             statement:
-              'ArrayList<string> handles = new ArrayList<string>(driver.WindowHandles());',
+              'ArrayList<string> handles = new ArrayList<string>(Driver.WindowHandles());',
           },
-          { level: 1, statement: 'driver.SwitchTo().Window(handles[0]);' },
+          { level: 1, statement: 'Driver.SwitchTo().Window(handles[0]);' },
           { level: 0, statement: '}' },
         ],
       })
@@ -609,11 +610,11 @@ async function emitSelectWindow(windowLocation) {
           {
             level: 1,
             statement:
-              'ArrayList<string> handles = new ArrayList<string>(driver.WindowHandles);',
+              'ArrayList<string> handles = new ArrayList<string>(Driver.WindowHandles);',
           },
           {
             level: 1,
-            statement: `driver.SwitchTo().Window(handles[${index}]);`,
+            statement: `Driver.SwitchTo().Window(handles[${index}]);`,
           },
           { level: 0, statement: '}' },
         ],
@@ -630,28 +631,28 @@ function generateSendKeysInput(value) {
   if (typeof value === 'object') {
     return value
       .map(s => {
-        if (s.startsWith('vars[')) {
+        if (s.startsWith('Vars[')) {
           return s
         } else if (s.startsWith('Key[')) {
           const key = s.match(/\['(.*)'\]/)[1]
           return `Keys.${exporter.parsers.capitalize(key.toLowerCase())}`
         } else {
-          return `"${s}"`
+          return `$"${s}"`
         }
       })
       .join(' + ')
   } else {
-    if (value.startsWith('vars[')) {
+    if (value.startsWith('Vars[')) {
       return value
     } else {
-      return `"${value}"`
+      return `$"${value}"`
     }
   }
 }
 
 async function emitSendKeys(target, value) {
   return Promise.resolve(
-    `driver.FindElement(${await location.emit(
+    `Driver.FindElement(${await location.emit(
       target
     )}).SendKeys(${generateSendKeysInput(value)});`
   )
@@ -664,7 +665,7 @@ function emitSetSpeed() {
 }
 
 async function emitStore(value, varName) {
-  return Promise.resolve(variableSetter(varName, `"${value}"`))
+  return Promise.resolve(variableSetter(varName, `$"${value}"`))
 }
 
 async function emitStoreAttribute(locator, varName) {
@@ -675,13 +676,13 @@ async function emitStoreAttribute(locator, varName) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         elementLocator
       )});`,
     },
     {
       level: 1,
-      statement: `string attribute = element.GetAttribute("${attributeName}");`,
+      statement: `string attribute = element.GetAttribute($"${attributeName}");`,
     },
     { level: 1, statement: `${variableSetter(varName, 'attribute')}` },
     { level: 0, statement: '}' },
@@ -696,27 +697,27 @@ async function emitStoreJson(_json, _varName) {
 }
 
 async function emitStoreText(locator, varName) {
-  const result = `driver.FindElement(${await location.emit(locator)}).Text`
+  const result = `Driver.FindElement(${await location.emit(locator)}).Text`
   return Promise.resolve(variableSetter(varName, result))
 }
 
 async function emitStoreTitle(_, varName) {
-  return Promise.resolve(variableSetter(varName, 'driver.Title'))
+  return Promise.resolve(variableSetter(varName, 'Driver.Title'))
 }
 
 async function emitStoreValue(locator, varName) {
-  const result = `driver.FindElement(${await location.emit(
+  const result = `Driver.FindElement(${await location.emit(
     locator
   )}).GetAttribute("value")`
   return Promise.resolve(variableSetter(varName, result))
 }
 
 async function emitStoreWindowHandle(varName) {
-  return Promise.resolve(variableSetter(varName, 'driver.CurrentWindowHandle'))
+  return Promise.resolve(variableSetter(varName, 'Driver.CurrentWindowHandle'))
 }
 
 async function emitStoreXpathCount(locator, varName) {
-  const result = `driver.FindElements(${await location.emit(locator)}).Count`
+  const result = `Driver.FindElements(${await location.emit(locator)}).Count`
   return Promise.resolve(variableSetter(varName, result))
 }
 
@@ -728,7 +729,7 @@ async function emitSubmit(_locator) {
 
 async function emitType(target, value) {
   return Promise.resolve(
-    `driver.FindElement(${await location.emit(
+    `Driver.FindElement(${await location.emit(
       target
     )}).SendKeys(${generateSendKeysInput(value)});`
   )
@@ -739,7 +740,7 @@ async function emitUncheck(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -753,7 +754,7 @@ async function emitUncheck(locator) {
 
 async function emitVerifyChecked(locator) {
   return Promise.resolve(
-    `Assert.True(driver.FindElement(${await location.emit(locator)}).Selected);`
+    `Assert.True(Driver.FindElement(${await location.emit(locator)}).Selected);`
   )
 }
 
@@ -762,7 +763,7 @@ async function emitVerifyEditable(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -781,7 +782,7 @@ async function emitVerifyElementPresent(locator) {
   const commands = [
     {
       level: 0,
-      statement: `var elements = driver.FindElements(${await location.emit(
+      statement: `var elements = Driver.FindElements(${await location.emit(
         locator
       )});`,
     },
@@ -795,7 +796,7 @@ async function emitVerifyElementNotPresent(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var elements = driver.FindElements(${await location.emit(
+      statement: `var elements = Driver.FindElements(${await location.emit(
         locator
       )});`,
     },
@@ -807,7 +808,7 @@ async function emitVerifyElementNotPresent(locator) {
 
 async function emitVerifyNotChecked(locator) {
   return Promise.resolve(
-    `Assert.False(driver.FindElement(${await location.emit(
+    `Assert.False(Driver.FindElement(${await location.emit(
       locator
     )}).Selected);`
   )
@@ -818,7 +819,7 @@ async function emitVerifyNotEditable(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -838,15 +839,13 @@ async function emitVerifyNotSelectedValue(locator, expectedValue) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `string value = driver.FindElement(${await location.emit(
+      statement: `string value = Driver.FindElement(${await location.emit(
         locator
       )}).GetAttribute("value");`,
     },
     {
       level: 1,
-      statement: `Assert.That(value, Is.Not.EqualTo("${exporter.emit.text(
-        expectedValue
-      )}"));`,
+      statement: `Assert.That(value, Is.Not.EqualTo($"${expectedValue}"));`,
     },
     { level: 0, statement: '}' },
   ]
@@ -854,9 +853,9 @@ async function emitVerifyNotSelectedValue(locator, expectedValue) {
 }
 
 async function emitVerifyNotText(locator, text) {
-  const result = `driver.FindElement(${await location.emit(locator)}).Text`
+  const result = `Driver.FindElement(${await location.emit(locator)}).Text`
   return Promise.resolve(
-    `Assert.That(${result}, Is.Not.EqualTo("${exporter.emit.text(text)}"));`
+    `Assert.That(${result}, Is.Not.EqualTo("${text}"));`
   )
 }
 
@@ -865,7 +864,7 @@ async function emitVerifySelectedLabel(locator, labelValue) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -881,7 +880,7 @@ async function emitVerifySelectedLabel(locator, labelValue) {
     },
     {
       level: 1,
-      statement: `Assert.That(selectedText, Is.EqualTo("${labelValue}"));`,
+      statement: `Assert.That(selectedText, Is.EqualTo($"${labelValue}"));`,
     },
     { level: 0, statement: '}' },
   ]
@@ -896,9 +895,9 @@ async function emitVerifySelectedValue(locator, value) {
 
 async function emitVerifyText(locator, text) {
   return Promise.resolve(
-    `Assert.That(driver.FindElement(${await location.emit(
+    `Assert.That(Driver.FindElement(${await location.emit(
       locator
-    )}).Text, Is.EqualTo("${exporter.emit.text(text)}"));`
+    )}).Text, Is.EqualTo($"${text}"));`
   )
 }
 
@@ -907,18 +906,18 @@ async function emitVerifyValue(locator, value) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `string value = driver.FindElement(${await location.emit(
+      statement: `string value = Driver.FindElement(${await location.emit(
         locator
       )}).GetAttribute("value");`,
     },
-    { level: 1, statement: `Assert.That(value, Is.EqualTo("${value}"));` },
+    { level: 1, statement: `Assert.That(value, Is.EqualTo($"${value}"));` },
     { level: 0, statement: '}' },
   ]
   return Promise.resolve({ commands })
 }
 
 async function emitVerifyTitle(title) {
-  return Promise.resolve(`Assert.That(driver.Title, Is.EqualTo("${title}"));`)
+  return Promise.resolve(`Assert.That(Driver.Title, Is.EqualTo($"${title}"));`)
 }
 
 async function emitWaitForElementEditable(locator, timeout) {
@@ -926,7 +925,7 @@ async function emitWaitForElementEditable(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -947,7 +946,7 @@ async function emitWaitForText(locator, text) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -955,7 +954,7 @@ async function emitWaitForText(locator, text) {
       level: 1,
       statement: `wait.Until(driver => driver.FindElement(${await location.emit(
         locator
-      )}).Text == "${text}");`,
+      )}).Text == $"${text}");`,
     },
     { level: 0, statement: '}' },
   ]
@@ -971,7 +970,7 @@ async function emitWaitForElementPresent(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -991,13 +990,13 @@ async function emitWaitForElementVisible(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
     {
       level: 1,
-      statement: `wait.Until(driver => driver.FindElement(${await location.emit(
+      statement: `wait.Until(diver => driver.FindElement(${await location.emit(
         locator
       )}).Displayed);`,
     },
@@ -1013,7 +1012,7 @@ async function emitWaitForElementNotEditable(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -1035,7 +1034,7 @@ async function emitWaitForElementNotPresent(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -1057,7 +1056,7 @@ async function emitWaitForElementNotVisible(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },

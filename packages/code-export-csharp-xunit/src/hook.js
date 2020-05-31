@@ -43,30 +43,11 @@ export function generateHooks() {
 
 function beforeEach() {
   const params = {
-    startingSyntax: ({ browserName, gridUrl } = {}) => ({
-      commands: [
-        { level: 0, statement: `public SuiteTests()` },
-        { level: 0, statement: `{` },
-        {
-          level: 1,
-          statement: gridUrl
-            ? `driver = new RemoteWebDriver(new Uri("${gridUrl}"), new ${
-                browserName ? browserName : 'Chrome'
-              }Options().ToCapabilities());`
-            : `driver = new ${browserName ? browserName : 'Chrome'}Driver();`,
-        },
-        {
-          level: 1,
-          statement: `js = (IJavaScriptExecutor)driver;`,
-        },
-        {
-          level: 1,
-          statement: `vars = new Dictionary<String, Object>();`,
-        },
-      ],
+    startingSyntax: () => ({
+      commands: [],
     }),
     endingSyntax: {
-      commands: [{ level: 0, statement: '}' }],
+      commands: [],
     },
   }
   return params
@@ -75,14 +56,10 @@ function beforeEach() {
 function afterEach() {
   const params = {
     startingSyntax: {
-      commands: [
-        { level: 0, statement: `public void Dispose()` },
-        { level: 0, statement: `{` },
-        { level: 1, statement: `driver.Quit();` },
-      ],
+      commands: [],
     },
     endingSyntax: {
-      commands: [{ level: 0, statement: '}' }],
+      commands: [],
     },
   }
   return params
@@ -103,6 +80,10 @@ function declareDependencies() {
         { level: 0, statement: `using OpenQA.Selenium.Support.UI;` },
         { level: 0, statement: `using OpenQA.Selenium.Interactions;` },
         { level: 0, statement: `using Xunit;` },
+        { level: 0, statement: `using Infrastructure.Tests;` },
+        { level: 0, statement: `using Infrastructure.Configuration;` },
+        { level: 0, statement: `// ReSharper disable CommentTypo` },
+        { level: 0, statement: `// ReSharper disable StringLiteralTypo` },
       ],
     },
   }
@@ -112,17 +93,7 @@ function declareDependencies() {
 function declareVariables() {
   const params = {
     startingSyntax: {
-      commands: [
-        { level: 0, statement: `public IWebDriver driver {get; private set;}` },
-        {
-          level: 0,
-          statement: `public IDictionary<String, Object> vars {get; private set;}`,
-        },
-        {
-          level: 0,
-          statement: `public IJavaScriptExecutor js {get; private set;}`,
-        },
-      ],
+      commands: [],
     },
   }
   return params

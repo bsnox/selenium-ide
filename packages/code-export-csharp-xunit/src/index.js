@@ -28,24 +28,24 @@ export let opts = {}
 opts.emitter = emitter
 opts.hooks = generateHooks()
 opts.fileExtension = '.cs'
-opts.commandPrefixPadding = '  '
+opts.commandPrefixPadding = '    '
 opts.terminatingKeyword = '}'
 opts.commentPrefix = '//'
 opts.generateMethodDeclaration = generateMethodDeclaration
 
 // Create generators for dynamic string creation of primary entities (e.g., filename, methods, test, and suite)
 function generateTestDeclaration(name) {
-  return `[Fact]\npublic void ${exporter.parsers.capitalize(
+  return `\n[Theory]\n[MemberData(nameof(SettingsFixture.Browsers), MemberType = typeof(SettingsFixture))]\npublic void ${exporter.parsers.capitalize(
     exporter.parsers.sanitizeName(name)
-  )}() {`
+  )}(string browserName, string browserVersion, string enableVnc) \n{\n${opts.commandPrefixPadding}Init(browserName, browserVersion, enableVnc);`
 }
 
-function generateSuiteDeclaration() {
-  return `public class SuiteTests : IDisposable {`
+function generateSuiteDeclaration(name) {
+  return `public class ${exporter.parsers.sanitizeName(name)}Tests : SeleniumTestBase {`
 }
 
 function generateMethodDeclaration(name) {
-  return `public void ${exporter.parsers.sanitizeName(name)}() \n{`
+  return `\nprivate void ${exporter.parsers.sanitizeName(name)}()\n{`
 }
 
 function generateNamespace(name) {
@@ -57,7 +57,7 @@ function generateNamespace(name) {
 function generateFilename(name) {
   return `${exporter.parsers.capitalize(
     exporter.parsers.sanitizeName(name)
-  )}Test${opts.fileExtension}`
+  )}Tests${opts.fileExtension}`
 }
 
 // Emit an individual test, wrapped in a suite (using the test name as the suite name)
@@ -80,7 +80,7 @@ export async function emitTest({
     project,
   })
   const suiteName = test.name
-  const suiteDeclaration = generateSuiteDeclaration()
+  const suiteDeclaration = generateSuiteDeclaration(suiteName)
   var _suite = await exporter.emit.suite(result, tests, {
     ...opts,
     suiteDeclaration,
@@ -111,7 +111,7 @@ export async function emitSuite({
     generateTestDeclaration,
     project,
   })
-  const suiteDeclaration = generateSuiteDeclaration()
+  const suiteDeclaration = generateSuiteDeclaration(suite.name)
   var _suite = await exporter.emit.suite(result, tests, {
     ...opts,
     suiteDeclaration,
@@ -121,7 +121,7 @@ export async function emitSuite({
   })
   return {
     filename: generateFilename(suite.name),
-    body: emitOrderedSuite(_suite, suite.name),
+    body: emitOrderedSuite(_suite, project.name),
   }
 }
 

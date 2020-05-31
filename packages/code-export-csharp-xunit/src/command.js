@@ -41,7 +41,7 @@ emitters.verify = emitAssert
 
 function emitAssert(varName, value) {
   return Promise.resolve(
-    `Assert.Equal(vars["${varName}"].ToString(), "${value}");`
+    `Assert.Equal($"${value}", Vars["${varName}"].ToString());`
   )
 }
 
@@ -51,7 +51,7 @@ emitters.assertPrompt = emitAssertAlert
 
 function emitAssertAlert(AlertText) {
   return Promise.resolve(
-    `Assert.Equal(driver.SwitchTo().Alert().Text, "${AlertText}");`
+    `Assert.Equal(Driver.SwitchTo().Alert().Text, $"${AlertText}");`
   )
 }
 
@@ -60,7 +60,7 @@ emitters.verifyChecked = emitVerifyChecked
 
 async function emitVerifyChecked(locator) {
   return Promise.resolve(
-    `Assert.True(driver.FindElement(${await location.emit(locator)}).Selected);`
+    `Assert.True(Driver.FindElement(${await location.emit(locator)}).Selected);`
   )
 }
 
@@ -72,7 +72,7 @@ async function emitVerifyEditable(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -95,7 +95,7 @@ async function emitVerifyElementPresent(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `IReadOnlyCollection<IWebElement> elements = driver.FindElements(${await location.emit(
+      statement: `IReadOnlyCollection<IWebElement> elements = Driver.FindElements(${await location.emit(
         locator
       )});`,
     },
@@ -113,7 +113,7 @@ async function emitVerifyElementNotPresent(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `IReadOnlyCollection<IWebElement> elements = driver.FindElements(${await location.emit(
+      statement: `IReadOnlyCollection<IWebElement> elements = Driver.FindElements(${await location.emit(
         locator
       )});`,
     },
@@ -128,7 +128,7 @@ emitters.verifyNotChecked = emitVerifyNotChecked
 
 async function emitVerifyNotChecked(locator) {
   return Promise.resolve(
-    `Assert.False(driver.FindElement(${await location.emit(
+    `Assert.False(Driver.FindElement(${await location.emit(
       locator
     )}).Selected);`
   )
@@ -142,7 +142,7 @@ async function emitVerifyNotEditable(locator) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -165,15 +165,13 @@ async function emitVerifyNotSelectedValue(locator, expectedValue) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `String value = driver.FindElement(${await location.emit(
+      statement: `String value = Driver.FindElement(${await location.emit(
         locator
       )}).GetAttribute("value");`,
     },
     {
       level: 1,
-      statement: `Assert.NotEqual(value, ${exporter.emit.text(
-        expectedValue
-      )});`,
+      statement: `Assert.NotEqual($"${expectedValue}", value);`,
     },
     { level: 0, statement: '}' },
   ]
@@ -184,9 +182,9 @@ emitters.assertNotText = emitVerifyNotText
 emitters.verifyNotText = emitVerifyNotText
 
 async function emitVerifyNotText(locator, text) {
-  const result = `driver.FindElement(${await location.emit(locator)}).Text`
+  const result = `Driver.FindElement(${await location.emit(locator)}).Text`
   return Promise.resolve(
-    `Assert.NotEqual(${result}, "${exporter.emit.text(text)}");`
+    `Assert.NotEqual($"${text}", ${result});`
   )
 }
 
@@ -198,7 +196,7 @@ async function emitVerifySelectedLabel(locator, labelValue) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `var element = driver.FindElement(${await location.emit(
+      statement: `var element = Driver.FindElement(${await location.emit(
         locator
       )});`,
     },
@@ -214,7 +212,7 @@ async function emitVerifySelectedLabel(locator, labelValue) {
     },
     {
       level: 1,
-      statement: `Assert.Equal(selectedText, "${labelValue}");`,
+      statement: `Assert.Equal(selectedText, $"${labelValue}");`,
     },
     { level: 0, statement: '}' },
   ]
@@ -232,11 +230,11 @@ async function emitVerifyValue(locator, value) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `String value = driver.FindElement(${await location.emit(
+      statement: `String value = Driver.FindElement(${await location.emit(
         locator
       )}).GetAttribute("value");`,
     },
-    { level: 1, statement: `Assert.Equal(value, "${value}");` },
+    { level: 1, statement: `Assert.Equal($"${value}", value);` },
     { level: 0, statement: '}' },
   ]
   return Promise.resolve({ commands })
@@ -247,9 +245,9 @@ emitters.verifyText = emitVerifyText
 
 async function emitVerifyText(locator, text) {
   return Promise.resolve(
-    `Assert.Equal(driver.FindElement(${await location.emit(
+    `Assert.Equal($"${text}", Driver.FindElement(${await location.emit(
       locator
-    )}).Text, "${exporter.emit.text(text)}");`
+    )}).Text);`
   )
 }
 
@@ -257,7 +255,7 @@ emitters.assertTitle = emitVerifyTitle
 emitters.verifyTitle = emitVerifyTitle
 
 async function emitVerifyTitle(title) {
-  return Promise.resolve(`Assert.Equal(driver.Title, "${title}");`)
+  return Promise.resolve(`Assert.Equal(Driver.Title, $"${title}");`)
 }
 
 export default {

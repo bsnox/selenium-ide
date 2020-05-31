@@ -21,7 +21,7 @@ export function findReusedTestMethods(test, tests, _results) {
     if (command.command === 'run') {
       const reusedTest = tests.find(test => test.name === command.target)
       results.push({ name: reusedTest.name, commands: reusedTest.commands })
-      return findReusedTestMethods(reusedTest, tests, results)
+      findReusedTestMethods(reusedTest, tests, results)
     }
   }
   return results
