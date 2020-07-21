@@ -996,7 +996,7 @@ async function emitWaitForElementVisible(locator, timeout) {
     },
     {
       level: 1,
-      statement: `wait.Until(diver => driver.FindElement(${await location.emit(
+      statement: `wait.Until(driver => driver.FindElement(${await location.emit(
         locator
       )}).Displayed);`,
     },
