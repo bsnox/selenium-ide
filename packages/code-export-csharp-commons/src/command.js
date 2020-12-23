@@ -731,6 +731,8 @@ async function emitType(target, value) {
   return Promise.resolve(
     `Driver.FindElement(${await location.emit(
       target
+    )}).Clear(); Driver.FindElement(${await location.emit(
+      target
     )}).SendKeys(${generateSendKeysInput(value)});`
   )
 }
