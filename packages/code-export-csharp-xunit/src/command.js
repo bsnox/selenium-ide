@@ -87,10 +87,9 @@ async function emitVerifyEditable(locator) {
   return Promise.resolve({ commands })
 }
 
-emitters.assertElementPresent = emitVerifyElementPresent
-emitters.verifyElementPresent = emitVerifyElementPresent
+emitters.assertElementPresent = emitAssertElementPresent
 
-async function emitVerifyElementPresent(locator) {
+async function emitAssertElementPresent(locator) {
   const commands = [
     { level: 0, statement: '{' },
     {
@@ -105,7 +104,40 @@ async function emitVerifyElementPresent(locator) {
   return Promise.resolve({ commands })
 }
 
-emitters.assertElementNotPresent = emitVerifyElementNotPresent
+emitters.verifyElementPresent = emitVerifyElementPresent
+
+async function emitVerifyElementPresent(locator) {
+  const commands = [
+    { level: 0, statement: '{' },
+    {
+      level: 1,
+      statement: `IReadOnlyCollection<IWebElement> elements = Driver.FindElements(${await location.emit(
+        locator
+      )});`,
+    },
+    { level: 1, statement: `if (elements.Count < 1) Console.WriteLine("${locator} not presents!");` },
+    { level: 0, statement: '}' },
+  ]
+  return Promise.resolve({ commands })
+}
+
+emitters.assertElementNotPresent = emitAssertElementNotPresent
+
+async function emitAssertElementNotPresent(locator) {
+  const commands = [
+    { level: 0, statement: '{' },
+    {
+      level: 1,
+      statement: `IReadOnlyCollection<IWebElement> elements = Driver.FindElements(${await location.emit(
+        locator
+      )});`,
+    },
+    { level: 1, statement: 'Assert.True(elements.Count == 0);' },
+    { level: 0, statement: '}' },
+  ]
+  return Promise.resolve({ commands })
+}
+
 emitters.verifyElementNotPresent = emitVerifyElementNotPresent
 
 async function emitVerifyElementNotPresent(locator) {
@@ -117,7 +149,7 @@ async function emitVerifyElementNotPresent(locator) {
         locator
       )});`,
     },
-    { level: 1, statement: 'Assert.True(elements.Count == 0);' },
+    { level: 1, statement: `if (elements.Count > 0) Console.WriteLine("${locator} presents!");` },
     { level: 0, statement: '}' },
   ]
   return Promise.resolve({ commands })
