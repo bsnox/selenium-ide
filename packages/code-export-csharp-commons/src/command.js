@@ -458,6 +458,7 @@ async function emitMouseMove(locator) {
       )});`,
     },
     { level: 1, statement: 'Actions builder = new Actions(Driver);' },
+    { level: 1, statement: 'Js.ExecuteScript($"arguments[0].scrollIntoView(true);", element);' },
     { level: 1, statement: 'builder.MoveToElement(element).Perform();' },
     { level: 0, statement: '}' },
   ]
