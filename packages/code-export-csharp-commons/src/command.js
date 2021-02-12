@@ -508,11 +508,7 @@ function emitOpen(target) {
 
 async function emitPause(time) {
   const commands = [
-    { level: 0, statement: 'try {' },
-    { level: 1, statement: `Thread.Sleep(${time});` },
-    { level: 0, statement: '} catch (Exception e) {' },
-    { level: 1, statement: 'Console.WriteLine("{0} Exception caught.", e);' },
-    { level: 0, statement: '}' },
+    { level: 0, statement: `Thread.Sleep(${time});` },
   ]
   return Promise.resolve({ commands })
 }
@@ -928,7 +924,7 @@ async function emitWaitForElementEditable(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -949,7 +945,7 @@ async function emitWaitForText(locator, text) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -973,7 +969,7 @@ async function emitWaitForElementPresent(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -993,7 +989,7 @@ async function emitWaitForElementVisible(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -1015,7 +1011,7 @@ async function emitWaitForElementNotEditable(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -1037,7 +1033,7 @@ async function emitWaitForElementNotPresent(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },
@@ -1059,7 +1055,7 @@ async function emitWaitForElementNotVisible(locator, timeout) {
     { level: 0, statement: '{' },
     {
       level: 1,
-      statement: `WebDriverWait wait = new WebDriverWait(Driver, System.TimeSpan.FromSeconds(${Math.floor(
+      statement: `WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(${Math.floor(
         timeout / 1000
       )}));`,
     },

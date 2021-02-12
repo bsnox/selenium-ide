@@ -41,7 +41,7 @@ emitters.verify = emitAssert
 
 function emitAssert(varName, value) {
   return Promise.resolve(
-    `Assert.Equal($"${value}".ToLower(), Vars["${varName}"].ToString().ToLower());`
+    `Assert.Equal($"${value}".ToLower(), Vars["${varName}"].ToString()?.ToLower());`
   )
 }
 

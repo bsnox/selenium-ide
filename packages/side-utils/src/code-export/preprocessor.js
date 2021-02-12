@@ -19,17 +19,8 @@ import stringEscape from '../string-escape'
 
 function escapeString(string, { preprocessor, ignoreEscaping }) {
   if (ignoreEscaping) return string
-  else if (preprocessor && preprocessor.name === 'scriptPreprocessor') {
-    let match = string.match(/\{.+\:\s.+}/)
-
-    if (match)
-      return string.replace(/"/g, "'").replace("{", "{{").replace("}", "}}")
-
-    return string.replace(/"/g, "'")
-  }
-  else {
-    return stringEscape(string)
-  }
+  else if (preprocessor && preprocessor.name === 'scriptPreprocessor') return string.replace(/"/g, "'")
+  else return stringEscape(string)
 }
 
 export function preprocessParameter(
@@ -56,6 +47,9 @@ export function defaultPreprocessor(param, variableLookup) {
 
 export function scriptPreprocessor(script) {
   let value = script.replace(/^\s+/, '').replace(/\s+$/, '')
+  if (script.match(/\{.+\:\s.+}/)) {
+    value = script.replace(/"/g, "'").replace("{", "{{").replace("}", "}}")
+  }
   let r2
   let parts = []
   const variablesUsed = {}
