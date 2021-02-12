@@ -19,9 +19,17 @@ import stringEscape from '../string-escape'
 
 function escapeString(string, { preprocessor, ignoreEscaping }) {
   if (ignoreEscaping) return string
-  else if (preprocessor && preprocessor.name === 'scriptPreprocessor')
+  else if (preprocessor && preprocessor.name === 'scriptPreprocessor') {
+    let match = string.match(/\{.+\:\s.+}/)
+
+    if (match)
+      return string.replace(/"/g, "'").replace("{", "{{").replace("}", "}}")
+
     return string.replace(/"/g, "'")
-  else return stringEscape(string)
+  }
+  else {
+    return stringEscape(string)
+  }
 }
 
 export function preprocessParameter(
@@ -40,7 +48,7 @@ export function defaultPreprocessor(param, variableLookup) {
   if (!param) return
   const _var = param.match(/\$\{(\w+)\}/)
   if (_var) {
-    return param.replace(_var[0], variableLookup(_var[1]))
+    return param.replaceAll(_var[0], variableLookup(_var[1]))
   } else {
     return param
   }
